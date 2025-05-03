@@ -15,6 +15,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -108,6 +109,14 @@ private fun ScreenBrightness(
     var currentValue by remember { mutableIntStateOf(handler.getScreenBrightness()) }
     val valueRange = handler.getScreenBrightnessRange()
     val isAutomatic = currentMode == ScreenBrightnessMode.Automatic
+    DisposableEffect(Unit) {
+        handler.registerScreenBrightnessListener { latestValue ->
+            currentValue = latestValue
+        }
+        onDispose {
+            handler.unregisterScreenBrightnessListener()
+        }
+    }
     SettingContent(
         modifier = modifier,
         title = "画面輝度",
@@ -129,7 +138,6 @@ private fun ScreenBrightness(
                     val result = handler.setScreenBrightnessMode(after)
                     if (result) {
                         currentMode = after
-                        currentValue = handler.getScreenBrightness()
                     }
                 }
             )
@@ -219,6 +227,14 @@ fun MainScreenPreview1() {
 
                 override fun getScreenBrightnessRange(): IntRange {
                     return 0..255
+                }
+
+                override fun registerScreenBrightnessListener(listener: (Int) -> Unit) {
+                    // NOP
+                }
+
+                override fun unregisterScreenBrightnessListener() {
+                    // NOP
                 }
 
                 override fun setScreenBrightnessMode(mode: ScreenBrightnessMode): Boolean {
