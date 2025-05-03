@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">EasySettings</string>
+    <string name="not_grant_message">システムの設定を変更するには、設定画面で権限の許可が必要です。\n下部のボタンから設定画面に遷移して、許可をお願いします。</string>
+    <string name="automatic">自動</string>
+    <string name="automatic_adjustment">自動調整</string>
+    <string name="manual">手動</string>
+</resources>
