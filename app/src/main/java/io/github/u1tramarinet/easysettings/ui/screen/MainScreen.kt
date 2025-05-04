@@ -171,7 +171,7 @@ private fun ScreenBrightness(
                         .align(alignment = Alignment.TopCenter)
                         .fillMaxWidth(),
                 ) {
-                    Spacer(modifier = Modifier.weight(currentValue + 0.1f))
+                    Spacer(modifier = Modifier.weight(currentValue - valueRange.first + 0.1f))
                     Text(text = currentValue.toString())
                     Spacer(modifier = Modifier.weight(valueRange.last - currentValue + 0.1f))
                 }
@@ -226,7 +226,7 @@ fun MainScreenPreview1() {
                 }
 
                 override fun getScreenBrightnessRange(): IntRange {
-                    return 0..255
+                    return 1..255
                 }
 
                 override fun registerScreenBrightnessListener(listener: (Int) -> Unit) {

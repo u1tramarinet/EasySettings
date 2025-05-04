@@ -29,7 +29,7 @@ class SystemSettingHandlerImpl(context: Context) : SystemSettingHandler {
     }
 
     override fun getScreenBrightnessRange(): IntRange {
-        return 0..255
+        return 1..255
     }
 
     override fun registerScreenBrightnessListener(listener: (Int) -> Unit) {
