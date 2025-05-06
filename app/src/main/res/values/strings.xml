@@ -4,4 +4,6 @@
     <string name="automatic">自動</string>
     <string name="automatic_adjustment">自動調整</string>
     <string name="manual">手動</string>
+    <string name="screen_brightness">画面輝度</string>
+    <string name="percent">%3d%%</string>
 </resources>

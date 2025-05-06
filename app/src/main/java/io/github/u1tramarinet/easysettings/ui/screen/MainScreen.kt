@@ -33,6 +33,8 @@ import io.github.u1tramarinet.easysettings.infra.ScreenBrightnessMode
 import io.github.u1tramarinet.easysettings.infra.SystemSettingHandler
 import io.github.u1tramarinet.easysettings.ui.common.EasySettingsPreview
 import io.github.u1tramarinet.easysettings.ui.common.EasySettingsScaffold
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 @Composable
 fun MainScreen(
@@ -40,17 +42,19 @@ fun MainScreen(
     handler: SystemSettingHandler,
     isGrant: Boolean,
     onClickSettings: () -> Unit,
+    onUpdateAppWidget: () -> Unit,
 ) {
     if (isGrant) {
         MainScreenContent(
             modifier = modifier,
             handler = handler,
+            onUpdateAppWidget = onUpdateAppWidget,
         )
         if (BuildConfig.DEBUG) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 32.dp)
             ) {
                 SettingButton(
                     modifier = Modifier
@@ -72,12 +76,19 @@ fun MainScreen(
 private fun MainScreenContent(
     modifier: Modifier = Modifier,
     handler: SystemSettingHandler,
+    onUpdateAppWidget: () -> Unit,
 ) {
     EasySettingsScaffold(modifier = modifier) {
         Column {
             ScreenBrightness(
                 modifier = Modifier.fillMaxWidth(),
                 handler = handler,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            SettingButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = "ウィジェットを更新する",
+                onClickSettings = onUpdateAppWidget,
             )
         }
     }
@@ -154,7 +165,9 @@ private fun ScreenBrightness(
             )
             Box(modifier = Modifier.weight(1f)) {
                 Slider(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
                     value = currentValue.toFloat(),
                     valueRange = valueRange.first * 1f..valueRange.last * 1f,
                     enabled = !isAutomatic,
@@ -202,12 +215,16 @@ private fun SettingContent(
 }
 
 @Composable
-private fun SettingButton(modifier: Modifier = Modifier, onClickSettings: () -> Unit) {
+private fun SettingButton(
+    modifier: Modifier = Modifier,
+    text: String = "設定へ移動する",
+    onClickSettings: () -> Unit,
+) {
     Button(
         modifier = modifier,
         onClick = onClickSettings,
     ) {
-        Text(text = "設定へ移動する")
+        Text(text = text)
     }
 }
 
@@ -224,6 +241,8 @@ fun MainScreenPreview1() {
                 override fun getScreenBrightness(): Int {
                     return 150
                 }
+
+                override fun getScreenBrightnessStream(): Flow<Int> = emptyFlow()
 
                 override fun getScreenBrightnessRange(): IntRange {
                     return 1..255
@@ -245,6 +264,7 @@ fun MainScreenPreview1() {
                     return ScreenBrightnessMode.Automatic
                 }
             },
+            onUpdateAppWidget = {},
         )
     }
 }
