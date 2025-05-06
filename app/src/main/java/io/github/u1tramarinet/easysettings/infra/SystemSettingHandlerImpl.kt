@@ -7,18 +7,22 @@ import android.os.Looper
 import android.provider.Settings
 import android.provider.Settings.SettingNotFoundException
 import android.util.Log
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import javax.inject.Inject
 
-class SystemSettingHandlerImpl(context: Context) : SystemSettingHandler {
+class SystemSettingHandlerImpl @Inject constructor(@ApplicationContext context: Context) :
+    SystemSettingHandler {
     private val contentResolver = context.contentResolver
     private val handler = Handler(Looper.getMainLooper())
     private val observers = mutableListOf<ContentObserver>()
+
     override fun setScreenBrightness(brightness: Int): Boolean {
-        if (getScreenBrightnessRange().contains(brightness).not()) {
-            return false
-        }
         return putInt(
             Settings.System.SCREEN_BRIGHTNESS,
-            brightness,
+            brightness.coerceIn(getScreenBrightnessRange()),
         )
     }
 
@@ -26,6 +30,15 @@ class SystemSettingHandlerImpl(context: Context) : SystemSettingHandler {
         return getInt(
             Settings.System.SCREEN_BRIGHTNESS
         ) ?: getScreenBrightnessRange().average().toInt()
+    }
+
+    override fun getScreenBrightnessStream(): Flow<Int> = callbackFlow {
+        val observer = registerListener(name = Settings.System.SCREEN_BRIGHTNESS) {
+            trySend(getScreenBrightness())
+        }
+        awaitClose {
+            unregisterListener(observer)
+        }
     }
 
     override fun getScreenBrightnessRange(): IntRange {
@@ -41,7 +54,7 @@ class SystemSettingHandlerImpl(context: Context) : SystemSettingHandler {
 
     override fun unregisterScreenBrightnessListener() {
         observers.forEach { observer ->
-            contentResolver.unregisterContentObserver(observer)
+            unregisterListener(observer)
         }
     }
 
@@ -73,7 +86,7 @@ class SystemSettingHandlerImpl(context: Context) : SystemSettingHandler {
         }
     }
 
-    private fun registerListener(name: String, listener: () -> Unit) {
+    private fun registerListener(name: String, listener: () -> Unit): ContentObserver {
         val newObserver = object : ContentObserver(handler) {
             override fun onChange(selfChange: Boolean) {
                 super.onChange(selfChange)
@@ -82,9 +95,14 @@ class SystemSettingHandlerImpl(context: Context) : SystemSettingHandler {
         }
         contentResolver.registerContentObserver(
             Settings.System.getUriFor(name),
-            false,
+            true,
             newObserver
         )
         observers += newObserver
+        return newObserver
+    }
+
+    private fun unregisterListener(observer: ContentObserver) {
+        contentResolver.unregisterContentObserver(observer)
     }
 }
